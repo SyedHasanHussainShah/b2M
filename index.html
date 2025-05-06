@@ -1,0 +1,1100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chain-Vallet DApp</title>
+  <link rel="icon" href="th.png" type="image/png">
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <div id="animated-background"></div>
+  <div class="min-h-screen flex flex-col">
+    <header class="py-4 px-6">
+      <div class="flex justify-between items-center">
+        <div class="text-2xl font-bold">
+          <span class="hidden md:inline">Chain</span> Wallet
+        </div>
+        <div class="flex items-center gap-3">
+          <!-- Search Bar - NEW -->
+          <div class="relative hidden md:block">
+            <input type="text" id="searchInput" placeholder="Search..." class="form-input py-1 pl-8 pr-4 text-sm rounded-full bg-gray-100 dark:bg-gray-700 border-none focus:ring-2 focus:ring-primary">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 absolute left-2.5 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            <!-- Desktop Search Results Dropdown -->
+            <div id="desktopSearchResults" class="absolute right-0 mt-2 w-80 max-h-96 overflow-y-auto bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 z-50 hidden">
+              <!-- Search results will appear here -->
+            </div>
+          </div>
+          
+          <!-- Mobile Search Button -->
+          <button id="mobileSearchBtn" class="md:hidden p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-300">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </button>
+          
+          <!-- Network Selector -->
+          <div class="relative">
+            <button id="networkSelector" class="flex items-center gap-1 px-2 py-1 text-sm rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition-all duration-300">
+              <span class="network-indicator h-2 w-2 rounded-full bg-green-500"></span>
+              <span class="hidden sm:inline">Ethereum</span>
+            </button>
+          </div>
+          
+          <!-- Notifications -->
+          <button id="notificationsBtn" class="relative p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-300">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+            </svg>
+            <span id="notificationBadge" class="badge-notification"></span>
+          </button>
+          
+          <!-- Help Button - NEW -->
+          <button id="helpBtn" class="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-300">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </button>
+          
+          <!-- Crypto Selector -->
+          <button id="cryptoSelector" class="p-2 rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition-all duration-300">
+            <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+PHBhdGggZmlsbD0iI2Y3OTMxYSIgZD0iTTE1Ljk2NSAyNi45NjRjLTYuMDc5IDAtMTEtNC45Mi0xMS0xMXM0LjkyMS0xMSAxMS0xMWM2LjA3OSAwIDExIDQuOTIgMTEgMTFzLTQuOTIxIDExLTExIDExem0uMTctMTkuMDcyYy00LjQ2NCAwLTguMDgzIDMuNjE5LTguMDgzIDguMDgzcy0zLjYxOSA4LjA4MyA4LjA4MyA4LjA4MyA4LjA4My0zLjYxOSA4LjA4My04LjA4My0zLjYxOS04LjA4My04LjA4My04LjA4M3ptLS4xNyAxNC44NzJjLTIuMTQ5IDAtMy44OS0xLjc0MS0zLjg5LTMuODlzMS43NDEtMy44OSAzLjg5LTMuODkgMy44OSAxLjc0MSAzLjg5IDMuODktMS43NDEgMy44OS0zLjg5IDMuODl6Ii8+PC9zdmc+" alt="BTC" class="h-6 w-6 rounded-full">
+          </button>
+          
+          <!-- Theme Toggle -->
+          <button id="themeToggle" class="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-300">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 dark:hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+            </svg>
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 hidden dark:block" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+            </svg>
+          </button>
+          
+          <!-- Profile Button -->
+          <button id="profileBtn" class="relative profile-circle h-8 w-8 border-2 border-primary transition duration-300 hover:border-opacity-80">
+            <!-- Default profile icon, replaced by user image when uploaded -->
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-full w-full text-gray-600 dark:text-gray-300 p-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </header>
+    <main class="flex-grow flex items-center justify-center p-4">
+      <div class="container rounded-2xl p-6 w-full max-w-md">
+        <div class="text-center mb-6">
+          <div class="flex justify-center mb-4">
+            <div class="relative">
+              <img src="https://pfst.cf2.poecdn.net/base/image/ac16f417632b311ea5b734e07ad78a541294c63b7b64bef7513e1638267413eb" alt="Wallet Logo" class="w-16 h-16 rounded-full object-contain border-2 border-primary p-1 animate-pulse" />
+              <span class="absolute -bottom-1 -right-1 h-4 w-4 bg-green-500 rounded-full hidden" id="connection-indicator"></span>
+            </div>
+          </div>
+          <h1 class="text-2xl md:text-3xl font-bold text-gradient bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600">
+            CHAIN-WALLET DAPP
+          </h1>
+          <p id="status" class="mt-2 text-sm">
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200">
+              Not connected
+            </span>
+          </p>
+        </div>
+
+        <div class="mb-6 bg-gray-100 dark:bg-gray-800 rounded-xl p-4">
+          <div class="flex items-center justify-between">
+            <div>
+              <div class="text-sm text-gray-600 dark:text-gray-400">Your Balance</div>
+              <div class="flex items-center">
+                <!-- Balance with Eye toggle - UPDATED -->
+                <div class="balance-container flex items-center">
+                  <div id="account-balance" class="text-2xl font-bold balance-text">0.00 ETH</div>
+                  <button id="toggle-balance-visibility" class="ml-2 p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-all duration-300" title="Show/Hide Balance">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500 dark:text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
+                  </button>
+                  <button id="refresh-balance" class="ml-2 p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-all duration-300" title="Refresh">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500 dark:text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+            <button id="walletButton" class="connect-btn py-2 px-4 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white rounded-lg font-medium transition-all duration-300 flex items-center shadow-md">
+              <span class="mr-2">🔌</span> Connect
+            </button>
+          </div>
+
+          <div class="mt-4 flex space-x-2">
+            <div class="flex-1 text-center py-2 bg-gray-200 dark:bg-gray-700 rounded-lg cursor-pointer hover:bg-gray-300 dark:hover:bg-gray-600 transition-all duration-300" id="btn-receive">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mx-auto mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+              </svg>
+              <span class="text-xs">Receive</span>
+            </div>
+            <div class="flex-1 text-center py-2 bg-gray-200 dark:bg-gray-700 rounded-lg cursor-pointer hover:bg-gray-300 dark:hover:bg-gray-600 transition-all duration-300" id="btn-swap">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mx-auto mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+              </svg>
+              <span class="text-xs">Swap</span>
+            </div>
+            <div class="flex-1 text-center py-2 bg-gray-200 dark:bg-gray-700 rounded-lg cursor-pointer hover:bg-gray-300 dark:hover:bg-gray-600 transition-all duration-300" id="btn-calculator">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mx-auto mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+              </svg>
+              <span class="text-xs">Calculator</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="mb-6 border-b border-gray-200 dark:border-gray-700">
+          <ul class="flex flex-wrap -mb-px text-sm font-medium text-center" role="tablist">
+            <li class="mr-2" role="presentation">
+              <button id="send-tab" class="inline-block p-4 border-b-2 border-primary rounded-t-lg transition-all duration-300" 
+                role="tab" aria-selected="true">
+                Quick Send
+              </button>
+            </li>
+            <li class="mr-2" role="presentation">
+              <button id="contract-tab" class="inline-block p-4 border-b-2 border-transparent hover:border-gray-300 rounded-t-lg transition-all duration-300" 
+                role="tab" aria-selected="false">
+                Contract
+              </button>
+            </li>
+            <li class="mr-2" role="presentation">
+              <button id="history-tab" class="inline-block p-4 border-b-2 border-transparent hover:border-gray-300 rounded-t-lg transition-all duration-300" 
+                role="tab" aria-selected="false">
+                History
+              </button>
+            </li>
+            <li role="presentation">
+              <button id="account-tab" class="inline-block p-4 border-b-2 border-transparent hover:border-gray-300 rounded-t-lg transition-all duration-300" 
+                role="tab" aria-selected="false">
+                Account
+              </button>
+            </li>
+          </ul>
+        </div>
+        
+        <div id="tab-content" class="mb-6">
+          <div id="send-panel" class="space-y-4">
+            <div class="relative">
+              <label for="recipient" class="block text-sm font-medium mb-1">Recipient Address</label>
+              <div class="flex items-center">
+                <input id="recipient" type="text" placeholder="0x..." 
+                  class="form-input w-full pl-4 pr-10 py-3 rounded-lg border dark:bg-gray-800 dark:border-gray-700" />
+                <button id="addressBookBtn" class="absolute right-3 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+                  </svg>
+                </button>
+              </div>
+              
+              <!-- Contact Book Dropdown -->
+              <div id="contactBook" class="absolute z-10 mt-1 w-full bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 hidden">
+                <div class="p-2 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+                  <span class="font-medium">Contact Book</span>
+                  <button id="addContactBtn" class="text-primary hover:text-blue-700 dark:hover:text-blue-300">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                    </svg>
+                  </button>
+                </div>
+                <div id="contactsList" class="max-h-40 overflow-y-auto p-1">
+                  <!-- Contacts will be populated here -->
+                </div>
+              </div>
+            </div>
+            
+            <div>
+              <label for="amount" class="block text-sm font-medium mb-1">Amount (ETH)</label>
+              <div class="relative">
+                <input id="amount" type="text" placeholder="0.01" 
+                  class="form-input w-full pl-4 pr-16 py-3 rounded-lg border dark:bg-gray-800 dark:border-gray-700" />
+                <div class="absolute inset-y-0 right-0 flex items-center">
+                  <span class="text-gray-500 dark:text-gray-400 pr-4">ETH</span>
+                </div>
+              </div>
+            </div>
+            
+            <!-- New: Transaction Category -->
+            <div>
+              <label for="tx-category" class="block text-sm font-medium mb-1">Category (optional)</label>
+              <div class="flex flex-wrap gap-2">
+                <div class="category-pill px-3 py-1 rounded-full text-xs bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 cursor-pointer">
+                  Transfer
+                </div>
+                <div class="category-pill px-3 py-1 rounded-full text-xs bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 cursor-pointer">
+                  Investment
+                </div>
+                <div class="category-pill px-3 py-1 rounded-full text-xs bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200 cursor-pointer">
+                  NFT
+                </div>
+                <div class="category-pill px-3 py-1 rounded-full text-xs bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200 cursor-pointer">
+                  DeFi
+                </div>
+                <div class="category-pill px-3 py-1 rounded-full text-xs bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200 cursor-pointer">
+                  Other
+                </div>
+              </div>
+            </div>
+            
+            <!-- New: Transaction Note -->
+            <div>
+              <label for="tx-note" class="block text-sm font-medium mb-1">Note (optional)</label>
+              <input id="tx-note" type="text" placeholder="Add a note to this transaction" 
+                class="form-input w-full pl-4 py-3 rounded-lg border dark:bg-gray-800 dark:border-gray-700" />
+            </div>
+            
+            <button id="sendBtn" class="w-full py-3 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white rounded-lg font-medium transition-all duration-300">
+              Send ETH
+            </button>
+          </div>
+          
+          <div id="contract-panel" class="space-y-4 hidden">
+            <div class="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg">
+              <p class="text-sm mb-2">Contract Address:</p>
+              <p id="contractAddress" class="text-xs break-all">0xbdD7894608cF5fF110e3E7b2C398e6FACD9a5dBC</p>
+            </div>
+            <div class="mt-4">
+              <h3 class="font-medium mb-2">Send from Contract</h3>
+              <div class="space-y-2">
+                <div class="relative">
+                  <input id="contractRecipient" type="text" placeholder="Recipient address" 
+                    class="form-input w-full pl-4 pr-10 py-3 rounded-lg border dark:bg-gray-800 dark:border-gray-700" />
+                  <button id="contractAddressBookBtn" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+                    </svg>
+                  </button>
+                </div>
+                <input id="contractAmount" type="text" placeholder="Amount in ETH" 
+                  class="form-input w-full px-4 py-3 rounded-lg border dark:bg-gray-800 dark:border-gray-700" />
+                <div class="flex space-x-2">
+                  <button id="sendContractBtn" class="flex-grow py-2 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white rounded-lg font-medium transition-all duration-300">
+                    Send ETH from Contract
+                  </button>
+                  <button id="downloadBtn" class="py-2 px-3 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg font-medium hover:bg-gray-300 dark:hover:bg-gray-600 transition-all duration-300">
+                    🔽
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div id="history-panel" class="space-y-2 hidden">
+            <div class="bg-gray-100 dark:bg-gray-800 p-3 rounded-lg">
+              <div class="flex justify-between items-center text-sm">
+                <span class="font-medium">Recent Transactions</span>
+                <div class="flex items-center space-x-2">
+                  <button id="refreshHistory" class="text-primary hover:text-opacity-80 transition-all duration-300 flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                    Refresh
+                  </button>
+                  <button id="downloadAllBtn" class="text-primary hover:text-opacity-80 transition-all duration-300 flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    </svg>
+                    Download
+                  </button>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Filter options for transaction history -->
+            <div class="flex overflow-x-auto py-2 mb-2 gap-2">
+              <button class="category-pill px-3 py-1 rounded-full text-xs bg-blue-500 text-white cursor-pointer">
+                All
+              </button>
+              <button class="category-pill px-3 py-1 rounded-full text-xs bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200 cursor-pointer">
+                Sent
+              </button>
+              <button class="category-pill px-3 py-1 rounded-full text-xs bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200 cursor-pointer">
+                Received
+              </button>
+              <button class="category-pill px-3 py-1 rounded-full text-xs bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200 cursor-pointer">
+                Contract
+              </button>
+            </div>
+            
+            <div id="transactions" class="space-y-2 max-h-60 overflow-y-auto">
+              <!-- Transactions will be populated here -->
+            </div>
+          </div>
+          
+          <!-- New Account Panel -->
+          <div id="account-panel" class="space-y-4 hidden">
+            <div class="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg">
+              <div class="flex items-center justify-between mb-4">
+                <h3 class="font-medium">Account Settings</h3>
+                <button id="editProfileBtn" class="text-primary hover:text-opacity-80 text-sm">
+                  Edit Profile
+                </button>
+              </div>
+              
+              <div class="flex items-center gap-4">
+                <div id="profile-image-container" class="profile-circle h-16 w-16 border-2 border-primary flex items-center justify-center bg-gray-200 dark:bg-gray-700">
+                  <!-- Default or user profile image -->
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-gray-500 dark:text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                </div>
+                
+                <div>
+                  <div id="profile-name" class="font-medium">Guest User</div>
+                  <div id="profile-address" class="text-xs text-gray-500 dark:text-gray-400">
+                    Connect wallet to view address
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg">
+              <h3 class="font-medium mb-3">Appearance</h3>
+              
+              <div class="flex flex-col space-y-3">
+                <div>
+                  <label class="text-sm mb-2 block">Theme</label>
+                  <div class="flex gap-2">
+                    <div class="theme-selector rounded-lg h-10 w-10 bg-gray-100 dark:bg-gray-800 active" data-theme="system"></div>
+                    <div class="theme-selector rounded-lg h-10 w-10 bg-white" data-theme="light"></div>
+                    <div class="theme-selector rounded-lg h-10 w-10 bg-gray-900" data-theme="dark"></div>
+                    <div class="theme-selector rounded-lg h-10 w-10 bg-gradient-to-br from-blue-400 to-purple-500" data-theme="custom"></div>
+                  </div>
+                </div>
+                
+                <div>
+                  <label class="text-sm mb-2 block">Accent Color</label>
+                  <div class="flex gap-2">
+                    <div class="h-8 w-8 rounded-full bg-primary border-2 border-white dark:border-gray-800"></div>
+                    <div class="h-8 w-8 rounded-full bg-blue-500 border border-gray-200 dark:border-gray-700"></div>
+                    <div class="h-8 w-8 rounded-full bg-green-500 border border-gray-200 dark:border-gray-700"></div>
+                    <div class="h-8 w-8 rounded-full bg-purple-500 border border-gray-200 dark:border-gray-700"></div>
+                    <div class="h-8 w-8 rounded-full bg-pink-500 border border-gray-200 dark:border-gray-700"></div>
+                  </div>
+                </div>
+                
+                <div>
+                  <label class="text-sm mb-2 block">Font Size</label>
+                  <div class="flex items-center gap-2">
+                    <span class="text-sm">A</span>
+                    <input type="range" min="1" max="3" value="2" class="w-full rounded-lg appearance-none h-2 bg-gray-200 dark:bg-gray-700">
+                    <span class="text-lg">A</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg">
+              <h3 class="font-medium mb-3">Security</h3>
+              
+              <div class="flex flex-col space-y-3">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <div class="font-medium text-sm">Change Password</div>
+                    <div class="text-xs text-gray-500 dark:text-gray-400">Last updated: Never</div>
+                  </div>
+                  <button id="changePasswordBtn" class="px-3 py-1 bg-primary text-white text-sm rounded-lg hover:bg-opacity-90">
+                    Change
+                  </button>
+                </div>
+                
+                <div class="flex items-center justify-between">
+                  <div>
+                    <div class="font-medium text-sm">Two-Factor Authentication</div>
+                    <div class="text-xs text-gray-500 dark:text-gray-400">Enhanced security for your account</div>
+                  </div>
+                  <div class="relative inline-block w-10 align-middle select-none">
+                    <input type="checkbox" id="toggle-2fa" class="sr-only">
+                    <label for="toggle-2fa" class="block overflow-hidden h-5 rounded-full bg-gray-300 dark:bg-gray-600 cursor-pointer"></label>
+                    <span class="absolute left-1 top-1 h-3 w-3 rounded-full bg-white transition-transform transform"></span>
+                  </div>
+                </div>
+                
+                <div class="flex items-center justify-between">
+                  <div>
+                    <div class="font-medium text-sm">Auto-Lock Wallet</div>
+                    <div class="text-xs text-gray-500 dark:text-gray-400">Lock after 15 minutes of inactivity</div>
+                  </div>
+                  <div class="relative inline-block w-10 align-middle select-none">
+                    <input type="checkbox" id="toggle-autolock" class="sr-only" checked>
+                    <label for="toggle-autolock" class="block overflow-hidden h-5 rounded-full bg-primary cursor-pointer"></label>
+                    <span class="absolute left-5 top-1 h-3 w-3 rounded-full bg-white transition-transform transform"></span>
+                  </div>
+                </div>
+                
+                <div class="flex items-center justify-between">
+                  <div>
+                    <div class="font-medium text-sm">Transaction Signing</div>
+                    <div class="text-xs text-gray-500 dark:text-gray-400">Always require password to confirm</div>
+                  </div>
+                  <div class="relative inline-block w-10 align-middle select-none">
+                    <input type="checkbox" id="toggle-signing" class="sr-only" checked>
+                    <label for="toggle-signing" class="block overflow-hidden h-5 rounded-full bg-primary cursor-pointer"></label>
+                    <span class="absolute left-5 top-1 h-3 w-3 rounded-full bg-white transition-transform transform"></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg">
+              <h3 class="font-medium mb-3">Preferences</h3>
+              
+              <div class="flex flex-col space-y-3">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <div class="font-medium text-sm">Notifications</div>
+                    <div class="text-xs text-gray-500 dark:text-gray-400">Receive alerts for transactions</div>
+                  </div>
+                  <div class="relative inline-block w-10 align-middle select-none">
+                    <input type="checkbox" id="toggle-notifications" class="sr-only" checked>
+                    <label for="toggle-notifications" class="block overflow-hidden h-5 rounded-full bg-primary cursor-pointer"></label>
+                    <span class="absolute left-5 top-1 h-3 w-3 rounded-full bg-white transition-transform transform"></span>
+                  </div>
+                </div>
+                
+                <div class="flex items-center justify-between">
+                  <div>
+                    <div class="font-medium text-sm">Currency Display</div>
+                    <div class="text-xs text-gray-500 dark:text-gray-400">Show fiat value alongside crypto</div>
+                  </div>
+                  <div class="relative inline-block w-10 align-middle select-none">
+                    <input type="checkbox" id="toggle-fiat" class="sr-only" checked>
+                    <label for="toggle-fiat" class="block overflow-hidden h-5 rounded-full bg-primary cursor-pointer"></label>
+                    <span class="absolute left-5 top-1 h-3 w-3 rounded-full bg-white transition-transform transform"></span>
+                  </div>
+                </div>
+                
+                <div>
+                  <label class="text-sm mb-2 block">Default Currency</label>
+                  <select class="form-input w-full px-4 py-2 rounded-lg border dark:bg-gray-800 dark:border-gray-700">
+                    <option value="USD">USD</option>
+                    <option value="EUR">EUR</option>
+                    <option value="GBP">GBP</option>
+                    <option value="JPY">JPY</option>
+                    <option value="AUD">AUD</option>
+                  </select>
+                </div>
+                
+                <div>
+                  <label class="text-sm mb-2 block">Default Gas Price</label>
+                  <div class="flex items-center gap-2">
+                    <button class="flex-1 text-center py-1 bg-gray-200 dark:bg-gray-700 rounded-lg text-sm cursor-pointer hover:bg-gray-300 dark:hover:bg-gray-600">Low</button>
+                    <button class="flex-1 text-center py-1 bg-primary text-white rounded-lg text-sm cursor-pointer">Average</button>
+                    <button class="flex-1 text-center py-1 bg-gray-200 dark:bg-gray-700 rounded-lg text-sm cursor-pointer hover:bg-gray-300 dark:hover:bg-gray-600">High</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <footer class="p-4 text-center text-sm text-gray-500 dark:text-gray-400">
+      <p>© 2025 Chain-Wallet DApp. All rights reserved.</p>
+    </footer>
+  </div>
+
+  <!-- Success Animation -->
+  <div id="successAnimation" class="fixed inset-0 z-50 flex items-center justify-center hidden">
+    <div class="absolute inset-0 bg-black bg-opacity-50 modal backdrop-blur-sm"></div>
+    <div class="relative flex flex-col items-center">
+      <div class="success-animation bg-white dark:bg-gray-800 rounded-full h-24 w-24 flex items-center justify-center">
+        <svg class="checkmark w-16 h-16" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
+          <circle class="checkmark__circle" cx="26" cy="26" r="25" fill="none" stroke="#5D5CDE" stroke-width="2"/>
+          <path class="checkmark__check" fill="none" stroke="#5D5CDE" stroke-width="3" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
+        </svg>
+      </div>
+      <p id="successMessage" class="mt-4 text-lg font-medium text-white"></p>
+    </div>
+  </div>
+
+  <!-- Modal for messages -->
+  <div id="modal" class="fixed inset-0 z-50 flex items-center justify-center hidden">
+    <div class="absolute inset-0 bg-black bg-opacity-50 modal backdrop-blur-sm"></div>
+    <div class="modal-content relative bg-white dark:bg-gray-800 rounded-lg max-w-md w-11/12 p-6 shadow-xl transform transition-all duration-300 scale-100">
+      <div class="flex justify-between items-start mb-4">
+        <h3 id="modalTitle" class="text-lg font-medium"></h3>
+        <button id="closeModal" class="text-gray-400 hover:text-gray-500 dark:text-gray-300 dark:hover:text-gray-200">
+          <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+      <div id="modalContent" class="mb-4"></div>
+      <div id="qrCodeContainer" class="mb-4 flex justify-center hidden">
+        <!-- QR Code will be displayed here -->
+      </div>
+      <div class="flex justify-end">
+        <button id="modalOkBtn" class="px-4 py-2 bg-primary text-white rounded hover:bg-opacity-90 transition-all duration-300">
+          OK
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Password Modal -->
+  <div id="passwordModal" class="fixed inset-0 z-50 flex items-center justify-center hidden">
+    <div class="absolute inset-0 bg-black bg-opacity-50 modal backdrop-blur-sm"></div>
+    <div class="modal-content relative bg-white dark:bg-gray-800 rounded-lg max-w-md w-11/12 p-6 shadow-xl transform transition-all duration-300 scale-100">
+      <div class="flex justify-between items-start mb-4">
+        <h3 class="text-lg font-medium">🔐 Wallet Authentication</h3>
+      </div>
+      <div class="mb-4">
+        <p class="mb-4">Please enter your wallet password to continue.</p>
+        <input id="passwordInput" type="password" class="form-input w-full px-4 py-2 rounded-lg border dark:bg-gray-700 dark:border-gray-600" placeholder="Enter password">
+        <p id="passwordError" class="text-red-500 mt-2 text-sm hidden">Incorrect password, please try again.</p>
+      </div>
+      <div class="flex justify-end space-x-2">
+        <button id="cancelPasswordBtn" class="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded hover:bg-gray-300 dark:hover:bg-gray-600 transition-all duration-300">
+          Cancel
+        </button>
+        <button id="submitPasswordBtn" class="px-4 py-2 bg-primary text-white rounded hover:bg-opacity-90 transition-all duration-300">
+          Submit
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Contact Modal -->
+  <div id="addContactModal" class="fixed inset-0 z-50 flex items-center justify-center hidden">
+    <div class="absolute inset-0 bg-black bg-opacity-50 modal backdrop-blur-sm"></div>
+    <div class="modal-content relative bg-white dark:bg-gray-800 rounded-lg max-w-md w-11/12 p-6 shadow-xl transform transition-all duration-300 scale-100">
+      <div class="flex justify-between items-start mb-4">
+        <h3 class="text-lg font-medium">Add New Contact</h3>
+        <button id="closeAddContactModal" class="text-gray-400 hover:text-gray-500 dark:text-gray-300 dark:hover:text-gray-200">
+          <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+      <div class="mb-4 space-y-3">
+        <div>
+          <label for="contactName" class="block text-sm font-medium mb-1">Contact Name</label>
+          <input id="contactName" type="text" class="form-input w-full px-4 py-2 rounded-lg border dark:bg-gray-700 dark:border-gray-600" placeholder="John Doe">
+        </div>
+        <div>
+          <label for="contactAddress" class="block text-sm font-medium mb-1">Wallet Address</label>
+          <input id="contactAddress" type="text" class="form-input w-full px-4 py-2 rounded-lg border dark:bg-gray-700 dark:border-gray-600" placeholder="0x...">
+        </div>
+        <div id="contactError" class="text-red-500 text-sm hidden"></div>
+      </div>
+      <div class="flex justify-end space-x-2">
+        <button id="cancelAddContactBtn" class="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded hover:bg-gray-300 dark:hover:bg-gray-600 transition-all duration-300">
+          Cancel
+        </button>
+        <button id="saveContactBtn" class="px-4 py-2 bg-primary text-white rounded hover:bg-opacity-90 transition-all duration-300">
+          Save
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Contact Modal -->
+  <div id="editContactModal" class="fixed inset-0 z-50 flex items-center justify-center hidden">
+    <div class="absolute inset-0 bg-black bg-opacity-50 modal backdrop-blur-sm"></div>
+    <div class="modal-content relative bg-white dark:bg-gray-800 rounded-lg max-w-md w-11/12 p-6 shadow-xl transform transition-all duration-300 scale-100">
+      <div class="flex justify-between items-start mb-4">
+        <h3 class="text-lg font-medium">Edit Contact</h3>
+        <button id="closeEditContactModal" class="text-gray-400 hover:text-gray-500 dark:text-gray-300 dark:hover:text-gray-200">
+          <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+      <div class="mb-4 space-y-3">
+        <div>
+          <label for="editContactName" class="block text-sm font-medium mb-1">Contact Name</label>
+          <input id="editContactName" type="text" class="form-input w-full px-4 py-2 rounded-lg border dark:bg-gray-700 dark:border-gray-600" placeholder="John Doe">
+        </div>
+        <div>
+          <label for="editContactAddress" class="block text-sm font-medium mb-1">Wallet Address</label>
+          <input id="editContactAddress" type="text" class="form-input w-full px-4 py-2 rounded-lg border dark:bg-gray-700 dark:border-gray-600" placeholder="0x...">
+          <input id="editContactId" type="hidden">
+        </div>
+        <div id="editContactError" class="text-red-500 text-sm hidden"></div>
+      </div>
+      <div class="flex justify-between">
+        <button id="deleteContactBtn" class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-all duration-300">
+          Delete
+        </button>
+        <div class="flex space-x-2">
+          <button id="cancelEditContactBtn" class="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded hover:bg-gray-300 dark:hover:bg-gray-600 transition-all duration-300">
+            Cancel
+          </button>
+          <button id="updateContactBtn" class="px-4 py-2 bg-primary text-white rounded hover:bg-opacity-90 transition-all duration-300">
+            Update
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Currency Converter Modal -->
+  <div id="converterModal" class="fixed inset-0 z-50 flex items-center justify-center hidden">
+    <div class="absolute inset-0 bg-black bg-opacity-50 modal backdrop-blur-sm"></div>
+    <div class="modal-content relative bg-white dark:bg-gray-800 rounded-lg max-w-md w-11/12 p-6 shadow-xl transform transition-all duration-300 scale-100">
+      <div class="flex justify-between items-start mb-4">
+        <h3 class="text-lg font-medium">Currency Converter</h3>
+        <button id="closeConverterModal" class="text-gray-400 hover:text-gray-500 dark:text-gray-300 dark:hover:text-gray-200">
+          <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+      <div class="mb-4 space-y-3">
+        <div>
+          <label for="cryptoAmount" class="block text-sm font-medium mb-1">Crypto Amount</label>
+          <div class="flex">
+            <input id="cryptoAmount" type="number" class="form-input w-full px-4 py-2 rounded-l-lg border dark:bg-gray-700 dark:border-gray-600" placeholder="1.0">
+            <select id="cryptoType" class="px-3 py-2 bg-gray-100 dark:bg-gray-600 border-y border-r rounded-r-lg dark:border-gray-700">
+              <option value="ETH">ETH</option>
+              <option value="BTC">BTC</option>
+              <option value="SOL">SOL</option>
+            </select>
+          </div>
+        </div>
+        <div class="flex justify-center my-2">
+          <button id="swapCurrencies" class="p-2 rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+            </svg>
+          </button>
+        </div>
+        <div>
+          <label for="fiatAmount" class="block text-sm font-medium mb-1">Fiat Amount</label>
+          <div class="flex">
+            <input id="fiatAmount" type="number" class="form-input w-full px-4 py-2 rounded-l-lg border dark:bg-gray-700 dark:border-gray-600" placeholder="3000.00">
+            <select id="fiatType" class="px-3 py-2 bg-gray-100 dark:bg-gray-600 border-y border-r rounded-r-lg dark:border-gray-700">
+              <option value="USD">USD</option>
+              <option value="EUR">EUR</option>
+              <option value="GBP">GBP</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <p class="text-xs text-gray-500 dark:text-gray-400 mb-4">Exchange rates are for demonstration purposes only.</p>
+      <div class="flex justify-end">
+        <button id="converterOkBtn" class="px-4 py-2 bg-primary text-white rounded hover:bg-opacity-90 transition-all duration-300">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Profile Modal - NEW -->
+  <div id="profileModal" class="fixed inset-0 z-50 flex items-center justify-center hidden">
+    <div class="absolute inset-0 bg-black bg-opacity-50 modal backdrop-blur-sm"></div>
+    <div class="modal-content relative bg-white dark:bg-gray-800 rounded-lg max-w-md w-11/12 p-6 shadow-xl transform transition-all duration-300 scale-100">
+      <div class="flex justify-between items-start mb-4">
+        <h3 class="text-lg font-medium">Edit Profile</h3>
+        <button id="closeProfileModal" class="text-gray-400 hover:text-gray-500 dark:text-gray-300 dark:hover:text-gray-200">
+          <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+      <div class="mb-4 space-y-4">
+        <div class="text-center">
+          <div class="relative inline-block">
+            <div id="profile-preview" class="cropper-container">
+              <div class="cropper-preview flex items-center justify-center bg-gray-200 dark:bg-gray-700">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-20 w-20 text-gray-500 dark:text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+              </div>
+            </div>
+            <div class="mt-2">
+              <label for="profile-upload" class="px-4 py-2 bg-primary text-white rounded cursor-pointer hover:bg-opacity-90 transition-all duration-300 inline-block">
+                Upload Image
+              </label>
+              <input type="file" id="profile-upload" class="hidden" accept="image/*">
+            </div>
+          </div>
+        </div>
+        
+        <div>
+          <label for="profileName" class="block text-sm font-medium mb-1">Display Name</label>
+          <input id="profileName" type="text" class="form-input w-full px-4 py-2 rounded-lg border dark:bg-gray-700 dark:border-gray-600" placeholder="Your Name">
+        </div>
+        
+        <div>
+          <label for="profileBio" class="block text-sm font-medium mb-1">Bio (optional)</label>
+          <textarea id="profileBio" class="form-input w-full px-4 py-2 rounded-lg border dark:bg-gray-700 dark:border-gray-600" placeholder="Tell us about yourself" rows="3"></textarea>
+        </div>
+      </div>
+      <div class="flex justify-end space-x-2">
+        <button id="cancelProfileBtn" class="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded hover:bg-gray-300 dark:hover:bg-gray-600 transition-all duration-300">
+          Cancel
+        </button>
+        <button id="saveProfileBtn" class="px-4 py-2 bg-primary text-white rounded hover:bg-opacity-90 transition-all duration-300">
+          Save Profile
+        </button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Notifications Panel - NEW -->
+  <div id="notificationsPanel" class="fixed right-4 top-16 z-40 w-80 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 transform scale-0 origin-top-right transition-all duration-300 hidden">
+    <div class="p-3 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+      <h3 class="font-medium">Notifications</h3>
+      <button id="closeNotifications" class="text-gray-400 hover:text-gray-500 dark:text-gray-300 dark:hover:text-gray-200">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+    <div class="max-h-80 overflow-y-auto p-2" id="notifications-list">
+      <div class="bg-blue-50 dark:bg-blue-900/30 p-3 rounded-lg mb-2">
+        <div class="flex justify-between items-start">
+          <div class="font-medium text-sm">Wallet Connected</div>
+          <div class="text-xs text-gray-500 dark:text-gray-400">Just now</div>
+        </div>
+        <p class="text-xs mt-1">Your wallet has been successfully connected.</p>
+      </div>
+      <div class="bg-green-50 dark:bg-green-900/30 p-3 rounded-lg mb-2">
+        <div class="flex justify-between items-start">
+          <div class="font-medium text-sm">Transaction Confirmed</div>
+          <div class="text-xs text-gray-500 dark:text-gray-400">5 mins ago</div>
+        </div>
+        <p class="text-xs mt-1">Your transfer of 0.01 ETH has been confirmed.</p>
+      </div>
+      <div class="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg">
+        <div class="flex justify-between items-start">
+          <div class="font-medium text-sm">Price Alert</div>
+          <div class="text-xs text-gray-500 dark:text-gray-400">1 hour ago</div>
+        </div>
+        <p class="text-xs mt-1">ETH price is up 3.5% in the last 24 hours.</p>
+      </div>
+    </div>
+    <div class="p-2 border-t border-gray-200 dark:border-gray-700">
+      <button class="w-full py-2 text-center text-sm text-primary hover:text-opacity-80 transition-all duration-300">
+        Clear All Notifications
+      </button>
+    </div>
+  </div>
+  
+  <!-- Network Selector Panel - NEW -->
+  <div id="networkPanel" class="fixed left-4 sm:left-auto sm:right-4 top-16 z-40 w-60 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 transform scale-0 origin-top-right transition-all duration-300 hidden">
+    <div class="p-3 border-b border-gray-200 dark:border-gray-700">
+      <h3 class="font-medium">Select Network</h3>
+    </div>
+    <div class="p-2">
+      <div class="bg-primary bg-opacity-10 dark:bg-opacity-20 p-2 rounded-lg mb-2 cursor-pointer hover:bg-opacity-20 dark:hover:bg-opacity-30">
+        <div class="flex items-center">
+          <div class="h-3 w-3 rounded-full bg-green-500 mr-2"></div>
+          <div class="font-medium">Ethereum Mainnet</div>
+        </div>
+        <div class="text-xs text-gray-500 dark:text-gray-400 ml-5 mt-1">Connected</div>
+      </div>
+      <div class="p-2 rounded-lg mb-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700">
+        <div class="flex items-center">
+          <div class="h-3 w-3 rounded-full bg-purple-500 mr-2"></div>
+          <div>Polygon</div>
+        </div>
+      </div>
+      <div class="p-2 rounded-lg mb-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700">
+        <div class="flex items-center">
+          <div class="h-3 w-3 rounded-full bg-blue-500 mr-2"></div>
+          <div>Arbitrum</div>
+        </div>
+      </div>
+      <div class="p-2 rounded-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700">
+        <div class="flex items-center">
+          <div class="h-3 w-3 rounded-full bg-yellow-500 mr-2"></div>
+          <div>Binance Smart Chain</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading Spinner -->
+  <div id="loadingSpinner" class="fixed inset-0 z-50 flex items-center justify-center hidden">
+    <div class="absolute inset-0 bg-black bg-opacity-30 modal backdrop-blur-sm"></div>
+    <div class="p-4 rounded-full bg-white dark:bg-gray-800">
+      <svg class="animate-spin h-8 w-8 text-primary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+      </svg>
+    </div>
+  </div>
+  
+  <!-- ENHANCED: Splash Screen with Beautiful Animations -->
+  <div id="splashScreen" class="fixed inset-0 z-50 flex flex-col items-center justify-center splash-bg overflow-hidden">
+    <!-- Animated background elements -->
+    <div class="circle-bg w-20 h-20" style="left: 15%; animation-delay: 0s;"></div>
+    <div class="circle-bg w-12 h-12" style="left: 30%; animation-delay: 2s;"></div>
+    <div class="circle-bg w-32 h-32" style="left: 70%; animation-delay: 1s;"></div>
+    <div class="circle-bg w-16 h-16" style="left: 50%; animation-delay: 3s;"></div>
+    <div class="circle-bg w-24 h-24" style="left: 85%; animation-delay: 1.5s;"></div>
+    
+    <div class="hexagon w-16 h-16" style="top: 20%; animation-delay: 0.5s;"></div>
+    <div class="hexagon w-24 h-24" style="top: 40%; animation-delay: 2.5s;"></div>
+    <div class="hexagon w-12 h-12" style="top: 70%; animation-delay: 1.2s;"></div>
+    
+    <!-- Wallet Logo with animation -->
+    <div class="relative mb-6">
+      <div class="absolute inset-0 bg-white/10 rounded-full blur-xl animate-pulse"></div>
+      <img src="https://pfst.cf2.poecdn.net/base/image/ac16f417632b311ea5b734e07ad78a541294c63b7b64bef7513e1638267413eb" alt="Wallet Logo" class="splash-logo w-28 h-28 relative rounded-full object-contain border-4 border-white p-2" />
+      <div class="absolute -top-4 -right-4 animate-spin-slow text-white">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      </div>
+      <div class="absolute -bottom-2 -left-2 animate-float text-white">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+        </svg>
+      </div>
+    </div>
+    
+    <!-- Title with text gradient animation -->
+    <h1 class="text-5xl font-bold text-gradient mb-4 tracking-wide">
+      Chain Wallet DAPP
+    </h1>
+    
+    <!-- Subtitle -->
+    <p class="text-white/90 text-lg mb-10">Your Secure Digital Currency Companion</p>
+    
+    <!-- Animated loading bar -->
+    <div class="loading-bar-container w-64 h-2 mb-3">
+      <div id="loadingBar" class="loading-bar"></div>
+    </div>
+    
+    <!-- Loading status text -->
+    <p class="text-white/80 text-sm">Loading your secure wallet<span id="loadingDots">...</span></p>
+    
+    <!-- Version -->
+    <p class="text-white/50 text-xs absolute bottom-4">Version 2.3.0</p>
+  </div>
+  
+  <!-- Transaction Notification Popup -->
+  <div id="transactionNotification" class="fixed right-4 top-20 z-50 max-w-sm bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 transform translate-x-full transition-all duration-500 overflow-hidden">
+    <div class="flex p-4 border-b border-gray-200 dark:border-gray-700">
+      <div id="notificationIcon" class="flex-shrink-0 h-12 w-12 rounded-full flex items-center justify-center bg-green-100 dark:bg-green-900/30 text-green-500 dark:text-green-300 mr-4">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+        </svg>
+      </div>
+      <div class="flex-1">
+        <h3 id="notificationTitle" class="font-medium text-gray-900 dark:text-white">Transaction Received</h3>
+        <p id="notificationMessage" class="mt-1 text-sm text-gray-500 dark:text-gray-400">You've received 0.05 ETH from John Doe.</p>
+      </div>
+      <button id="closeNotificationBtn" class="text-gray-400 hover:text-gray-500 dark:text-gray-300 dark:hover:text-gray-200">
+        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+    <div class="h-1 bg-green-500" id="notificationProgressBar"></div>
+  </div>
+  
+  <!-- Help Modal -->
+  <div id="helpModal" class="fixed inset-0 z-50 flex items-center justify-center hidden">
+    <div class="absolute inset-0 bg-black bg-opacity-50 modal backdrop-blur-sm"></div>
+    <div class="modal-content relative bg-white dark:bg-gray-800 rounded-lg max-w-2xl w-11/12 p-6 shadow-xl transform transition-all duration-300 scale-100 max-h-[80vh] overflow-y-auto">
+      <div class="flex justify-between items-start mb-4">
+        <h3 class="text-lg font-medium">Chain Wallet User Guide</h3>
+        <button id="closeHelpModal" class="text-gray-400 hover:text-gray-500 dark:text-gray-300 dark:hover:text-gray-200">
+          <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+      <div class="mb-4 space-y-4">
+        <div class="border-b pb-3 border-gray-200 dark:border-gray-700">
+          <h4 class="font-medium mb-2">Getting Started</h4>
+          <p class="text-sm text-gray-600 dark:text-gray-400">To begin using Chain Wallet, you first need to connect your wallet by clicking the "Connect" button in the main screen. You'll be prompted to enter your password (default: 1234).</p>
+        </div>
+        
+        <div class="border-b pb-3 border-gray-200 dark:border-gray-700">
+          <h4 class="font-medium mb-2">Sending Transactions</h4>
+          <p class="text-sm text-gray-600 dark:text-gray-400">
+            1. Navigate to the "Quick Send" tab<br>
+            2. Enter the recipient's address (or select from your contacts)<br>
+            3. Enter the amount to send<br>
+            4. Select a transaction category (optional)<br>
+            5. Add a note (optional)<br>
+            6. Click "Send ETH"
+          </p>
+        </div>
+        
+        <div class="border-b pb-3 border-gray-200 dark:border-gray-700">
+          <h4 class="font-medium mb-2">Receiving Funds</h4>
+          <p class="text-sm text-gray-600 dark:text-gray-400">
+            1. Click the "Receive" button to display your wallet address<br>
+            2. Share your address or QR code with the sender<br>
+            3. Once the transaction is complete, you'll receive a notification
+          </p>
+        </div>
+        
+        <div class="border-b pb-3 border-gray-200 dark:border-gray-700">
+          <h4 class="font-medium mb-2">Managing Contacts</h4>
+          <p class="text-sm text-gray-600 dark:text-gray-400">
+            1. Click the address book icon next to the recipient field<br>
+            2. Click the "+" button to add a new contact<br>
+            3. Enter the contact's name and address<br>
+            4. Click "Save"
+          </p>
+        </div>
+        
+        <div class="border-b pb-3 border-gray-200 dark:border-gray-700">
+          <h4 class="font-medium mb-2">Changing Your Password</h4>
+          <p class="text-sm text-gray-600 dark:text-gray-400">
+            1. Go to the "Account" tab<br>
+            2. Scroll to the "Security" section<br>
+            3. Click "Change" next to "Change Password"<br>
+            4. Enter your current password and new password<br>
+            5. Click "Update Password"
+          </p>
+        </div>
+        
+        <div>
+          <h4 class="font-medium mb-2">Two-Factor Authentication</h4>
+          <p class="text-sm text-gray-600 dark:text-gray-400">
+            1. Go to the "Account" tab<br>
+            2. Scroll to the "Security" section<br>
+            3. Toggle the switch next to "Two-Factor Authentication"<br>
+            4. Follow the on-screen instructions to set up 2FA
+          </p>
+        </div>
+      </div>
+      <div class="flex justify-end">
+        <button id="closeHelpBtn" class="px-4 py-2 bg-primary text-white rounded hover:bg-opacity-90 transition-all duration-300">
+          Got It
+        </button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Change Password Modal - NEW -->
+  <div id="changePasswordModal" class="fixed inset-0 z-50 flex items-center justify-center hidden">
+    <div class="absolute inset-0 bg-black bg-opacity-50 modal backdrop-blur-sm"></div>
+    <div class="modal-content relative bg-white dark:bg-gray-800 rounded-lg max-w-md w-11/12 p-6 shadow-xl transform transition-all duration-300 scale-100">
+      <div class="flex justify-between items-start mb-4">
+        <h3 class="text-lg font-medium">Change Password</h3>
+        <button id="closeChangePasswordModal" class="text-gray-400 hover:text-gray-500 dark:text-gray-300 dark:hover:text-gray-200">
+          <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+      <div class="mb-4 space-y-4">
+        <div>
+          <label for="currentPassword" class="block text-sm font-medium mb-1">Current Password</label>
+          <input id="currentPassword" type="password" class="form-input w-full px-4 py-2 rounded-lg border dark:bg-gray-700 dark:border-gray-600" placeholder="Enter current password">
+        </div>
+        <div>
+          <label for="newPassword" class="block text-sm font-medium mb-1">New Password</label>
+          <input id="newPassword" type="password" class="form-input w-full px-4 py-2 rounded-lg border dark:bg-gray-700 dark:border-gray-600" placeholder="Enter new password">
+        </div>
+        <div>
+          <label for="confirmPassword" class="block text-sm font-medium mb-1">Confirm New Password</label>
+          <input id="confirmPassword" type="password" class="form-input w-full px-4 py-2 rounded-lg border dark:bg-gray-700 dark:border-gray-600" placeholder="Confirm new password">
+        </div>
+        <p id="passwordChangeError" class="text-red-500 text-sm hidden"></p>
+      </div>
+      <div class="flex justify-end space-x-2">
+        <button id="cancelPasswordChangeBtn" class="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded hover:bg-gray-300 dark:hover:bg-gray-600 transition-all duration-300">
+          Cancel
+        </button>
+        <button id="updatePasswordBtn" class="px-4 py-2 bg-primary text-white rounded hover:bg-opacity-90 transition-all duration-300">
+          Update Password
+        </button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- 2FA Setup Modal - NEW -->
+  <div id="twoFactorModal" class="fixed inset-0 z-50 flex items-center justify-center hidden">
+    <div class="absolute inset-0 bg-black bg-opacity-50 modal backdrop-blur-sm"></div>
+    <div class="modal-content relative bg-white dark:bg-gray-800 rounded-lg max-w-md w-11/12 p-6 shadow-xl transform transition-all duration-300 scale-100">
+      <div class="flex justify-between items-start mb-4">
+        <h3 class="text-lg font-medium">Set Up Two-Factor Authentication</h3>
+        <button id="closeTwoFactorModal" class="text-gray-400 hover:text-gray-500 dark:text-gray-300 dark:hover:text-gray-200">
+          <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+      <div class="mb-4 space-y-4">
+        <div class="text-center">
+          <div class="p-4 bg-white inline-block rounded-lg mb-3">
+            <!-- Simulated QR code for 2FA setup -->
+            <div class="w-40 h-40 mx-auto grid grid-cols-10 grid-rows-10 gap-0.5">
+              <!-- Generate a random pattern for the QR code -->
+              <div class="bg-black"></div><div class="bg-black"></div><div class="bg-black"></div><div class="bg-black"></div><div class="bg-black"></div><div class="bg-black"></div><div class="bg-black"></div><div class="bg-white"></div><div class="bg-black"></div><div class="bg-black"></div>
+              <div class="bg-black"></div><div class="bg-white"></div><div class="bg-white"></div><div class="bg-white"></div><div class="bg-white"></div><div class="bg-white"></div><div class="bg-black"></div><div class="bg-white"></div><div class="bg-white"></div><div class="bg-black"></div>
+              <div class="bg-black"></div><div class="bg-white"></div><div class="bg-black"></div><div class="bg-black"></div><div class="bg-black"></div><div class="bg-white"></div><div class="bg-black"></div><div class="bg-white"></div><div class="bg-white"></div><div class="bg-black"></div>
+              <div class="bg-black"></div><div class="bg-white"></div><div class="bg-black"></div><div class="bg-black"></div><div class="bg-black"></div><div class="bg-white"></div><div class="bg-black"></div><div class="bg-black"></div><div class="bg-white"></div><div class="bg-black"></div>
+              <div class="bg-black"></div><div class="bg-white"></div><div class="bg-black"></div><div class="bg-black"></div><div class="bg-black"></div><div class="bg-white"></div><div class="bg-black"></div><div class="bg-white"></div><div class="bg-black"></div><div class="bg-black"></div>
+              <div class="bg-black"></div><div class="bg-white"></div><div class="bg-white"></div><div class="bg-white"></div><div class="bg-white"></div><div class="bg-white"></div><div class="bg-black"></div><div class="bg-white"></div><div class="bg-black"></div><div class="bg-black"></div>
+              <div class="bg-black"></div><div class="bg-black"></div><div class="bg-black"></div><div class="bg-black"></div><div class="bg-black"></div><div class="bg-black"></div><div class="bg-black"></div><div class="bg-white"></div><div class="bg-white"></div><div class="bg-black"></div>
+              <div class="bg-white"></div><div class="bg-white"></div><div class="bg-white"></div><div class="bg-black"></div><div class="bg-white"></div><div class="bg-white"></div><div class="bg-white"></div><div class="bg-white"></div><div class="bg-black"></div><div class="bg-white"></div>
+              <div class="bg-black"></div><div class="bg-white"></div><div class="bg-black"></div><div class="bg-white"></div><div class="bg-white"></div><div class="bg-black"></div><div class="bg-black"></div><div class="bg-white"></div><div class="bg-white"></div><div class="bg-black"></div>
+              <div class="bg-white"></div><div class="bg-black"></div><div class="bg-white"></div><div class="bg-black"></div><div class="bg-white"></div><div class="bg-black"></div><div class="bg-white"></div><div class="bg-black"></div><div class="bg-white"></div><div class="bg-black"></div>
+            </div>
+          </div>
+          <p class="text-sm text-gray-600 dark:text-gray-400">Scan this QR code with your authentication app</p>
+          <div class="mt-2 p-2 bg-gray-100 dark:bg-gray-700 rounded text-sm font-mono break-all select-all">
+            ZTGM NPJI L7S3 VX4P QOWY EF8B
+          </div>
+        </div>
+        
+        <div>
+          <label for="verificationCode" class="block text-sm font-medium mb-1">Verification Code</label>
+          <input id="verificationCode" type="text" class="form-input w-full px-4 py-2 rounded-lg border dark:bg-gray-700 dark:border-gray-600" placeholder="Enter 6-digit code">
+          <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Enter the 6-digit code from your authentication app</p>
+        </div>
+        
+        <p id="twoFactorError" class="text-red-500 text-sm hidden"></p>
+      </div>
+      <div class="flex justify-end space-x-2">
+        <button id="cancelTwoFactorBtn" class="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded hover:bg-gray-300 dark:hover:bg-gray-600 transition-all duration-300">
+          Cancel
+        </button>
+        <button id="verifyTwoFactorBtn" class="px-4 py-2 bg-primary text-white rounded hover:bg-opacity-90 transition-all duration-300">
+          Verify & Enable
+        </button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Mobile Search Overlay - NEW -->
+  <div id="mobileSearchOverlay" class="fixed inset-0 z-50 bg-white dark:bg-gray-900 hidden">
+    <div class="p-4">
+      <div class="flex items-center mb-4">
+        <button id="closeMobileSearch" class="mr-3">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+          </svg>
+        </button>
+        <input type="text" id="mobileSearchInput" placeholder="Search..." class="form-input py-2 pl-10 pr-4 w-full rounded-lg bg-gray-100 dark:bg-gray-800 border-none focus:ring-2 focus:ring-primary">
+        <div class="absolute left-16">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500 dark:text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+        </div>
+      </div>
+      <div id="searchResults" class="overflow-y-auto max-h-[calc(100vh-100px)]">
+        <!-- Search results will appear here -->
+        <div class="text-center text-gray-500 dark:text-gray-400 py-4">
+          Type to search transactions, contacts, and settings
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
