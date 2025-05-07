@@ -306,14 +306,19 @@ body {
 }
 
 .theme-selector.active {
-  border-color: #5D5CDE;
+  border-color: #5d5cde;
   transform: scale(1.05);
 }
 
 /* Network indicator animation */
 @keyframes blink {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.4; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
 }
 
 .network-indicator {
@@ -340,7 +345,7 @@ body {
   margin: 0 auto;
   overflow: hidden;
   border-radius: 50%;
-  border: 2px solid #5D5CDE;
+  border: 2px solid #5d5cde;
 }
 
 .cropper-preview {
@@ -368,8 +373,12 @@ body {
 
 /* Notification progress bar animation */
 @keyframes progress {
-  from { width: 100%; }
-  to { width: 0%; }
+  from {
+    width: 100%;
+  }
+  to {
+    width: 0%;
+  }
 }
 
 #notificationProgressBar {
@@ -378,8 +387,14 @@ body {
 
 /* New: Splash screen animation */
 @keyframes revealText {
-  0% { opacity: 0; transform: translateY(20px); }
-  100% { opacity: 1; transform: translateY(0); }
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 #splashScreen h1 {
@@ -400,7 +415,7 @@ body {
 
 /* ENHANCED: Additional splash screen animations */
 .splash-bg {
-  background: linear-gradient(-45deg, #5D5CDE, #4f46e5, #7e22ce, #c026d3);
+  background: linear-gradient(-45deg, #5d5cde, #4f46e5, #7e22ce, #c026d3);
   background-size: 400% 400%;
   animation: gradient 10s ease infinite;
 }
@@ -423,7 +438,8 @@ body {
 }
 
 @keyframes float {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateY(0) rotate(0deg);
   }
   50% {
@@ -483,8 +499,8 @@ body {
 }
 
 .loading-bar {
-  background: linear-gradient(90deg, #5D5CDE, #8b5cf6);
-  box-shadow: 0 0 15px #5D5CDE;
+  background: linear-gradient(90deg, #5d5cde, #8b5cf6);
+  box-shadow: 0 0 15px #5d5cde;
   height: 100%;
   width: 0;
   transition: width 0.5s ease;
@@ -498,7 +514,12 @@ body {
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.4),
+    transparent
+  );
   transform: translateX(-100%);
   animation: shimmer-loading 2s infinite;
 }
@@ -510,7 +531,7 @@ body {
 }
 
 .text-gradient {
-  background: linear-gradient(90deg, #5D5CDE, #8b5cf6, #c026d3);
+  background: linear-gradient(90deg, #5d5cde, #8b5cf6, #c026d3);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
