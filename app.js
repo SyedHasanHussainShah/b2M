@@ -166,65 +166,147 @@ document.addEventListener("DOMContentLoaded", function () {
     { stateMutability: "payable", type: "receive" },
   ];
 
-  // ENHANCED: More comprehensive transaction history data for better search
-  const allTransactions = [
-    {
+  // Transaction history loaded from localStorage or default data if empty
+  let allTransactions = [];
+
+  // Try to load transactions from localStorage
+  const savedTransactions = localStorage.getItem("chainWalletTransactions");
+  if (savedTransactions) {
+    try {
+      allTransactions = JSON.parse(savedTransactions);
+    } catch (e) {
+      console.error("Error loading transactions from localStorage:", e);
+      // Fallback to default transactions if parsing fails
+      allTransactions = [
+        {
+          to: "0xbdD7894608cF5fF110e3E7b2C398e6FACD9a5dBC",
+          amount: "0.01",
+          date: "2025/05/07",
+          type: "outgoing",
+          category: "Transfer",
+          note: "Payment for services",
+        },
+        {
+          to: "0x52676f0b841d7b40740ced9a218de532da9ba640",
+          amount: "0.01",
+          date: "2025/05/05",
+          type: "outgoing",
+          category: "Transfer",
+          note: "Payment for services",
+        },
+        {
+          to: "0xbdD7894608cF5fF110e3E7b2C398e6FACD9a5dBC",
+          amount: "0.05",
+          date: "2025/05/04",
+          type: "incoming",
+          category: "Investment",
+          note: "Investment return",
+        },
+        {
+          to: "0xbdD7894608cF5fF110e3E7b2C398e6FACD9a5dBC",
+          amount: "0.25",
+          date: "2025/04/30",
+          type: "contract",
+          category: "NFT",
+          note: "NFT purchase",
+        },
+        {
+          to: "0x52676f0b841d7b40740ced9a218de532da9ba640",
+          amount: "0.075",
+          date: "2025/05/29",
+          type: "outgoing",
+          category: "DeFi",
+          note: "Liquidity provision",
+        },
+        {
+          to: "0x8ba1f109551bD432803012645Ac136ddd64DBA72",
+          amount: "0.15",
+          date: "2025/05/28",
+          type: "outgoing",
+          category: "Transfer",
+          note: "Weekly savings",
+        },
+        {
+          to: "0x52676f0b841d7b40740ced9a218de532da9ba640",
+          amount: "0.02",
+          date: "2025/04/27",
+          type: "incoming",
+          category: "Transfer",
+          note: "Refund",
+        },
+      ];
+      // Save the default transactions to localStorage
+      localStorage.setItem(
+        "chainWalletTransactions",
+        JSON.stringify(allTransactions)
+      );
+    }
+  } else {
+    // Initialize with default transactions if none exist in storage
+    allTransactions = [
+      {
         to: "0xbdD7894608cF5fF110e3E7b2C398e6FACD9a5dBC",
         amount: "0.01",
         date: "2025/05/07",
         type: "outgoing",
         category: "Transfer",
         note: "Payment for services",
-      }
-    ,{
-      to: "0x52676f0b841d7b40740ced9a218de532da9ba640",
-      amount: "0.01",
-      date: "2025/05/05",
-      type: "outgoing",
-      category: "Transfer",
-      note: "Payment for services",
-    },
-    {
-      to: "0xbdD7894608cF5fF110e3E7b2C398e6FACD9a5dBC",
-      amount: "0.05",
-      date: "2025/05/04",
-      type: "incoming",
-      category: "Investment",
-      note: "Investment return",
-    },
-    {
-      to: "0xbdD7894608cF5fF110e3E7b2C398e6FACD9a5dBC",
-      amount: "0.25",
-      date: "2025/04/30",
-      type: "contract",
-      category: "NFT",
-      note: "NFT purchase",
-    },
-    {
-      to: "0x52676f0b841d7b40740ced9a218de532da9ba640",
-      amount: "0.075",
-      date: "2025/05/29",
-      type: "outgoing",
-      category: "DeFi",
-      note: "Liquidity provision",
-    },
-    {
-      to: "0x8ba1f109551bD432803012645Ac136ddd64DBA72",
-      amount: "0.15",
-      date: "2025/05/28",
-      type: "outgoing",
-      category: "Transfer",
-      note: "Weekly savings",
-    },
-    {
-      to: "0x52676f0b841d7b40740ced9a218de532da9ba640",
-      amount: "0.02",
-      date: "2025/04/27",
-      type: "incoming",
-      category: "Transfer",
-      note: "Refund",
-    },
-  ];
+      },
+      {
+        to: "0x52676f0b841d7b40740ced9a218de532da9ba640",
+        amount: "0.01",
+        date: "2025/05/05",
+        type: "outgoing",
+        category: "Transfer",
+        note: "Payment for services",
+      },
+      {
+        to: "0xbdD7894608cF5fF110e3E7b2C398e6FACD9a5dBC",
+        amount: "0.05",
+        date: "2025/05/04",
+        type: "incoming",
+        category: "Investment",
+        note: "Investment return",
+      },
+      {
+        to: "0xbdD7894608cF5fF110e3E7b2C398e6FACD9a5dBC",
+        amount: "0.25",
+        date: "2025/04/30",
+        type: "contract",
+        category: "NFT",
+        note: "NFT purchase",
+      },
+      {
+        to: "0x52676f0b841d7b40740ced9a218de532da9ba640",
+        amount: "0.075",
+        date: "2025/05/29",
+        type: "outgoing",
+        category: "DeFi",
+        note: "Liquidity provision",
+      },
+      {
+        to: "0x8ba1f109551bD432803012645Ac136ddd64DBA72",
+        amount: "0.15",
+        date: "2025/05/28",
+        type: "outgoing",
+        category: "Transfer",
+        note: "Weekly savings",
+      },
+      {
+        to: "0x52676f0b841d7b40740ced9a218de532da9ba640",
+        amount: "0.02",
+        date: "2025/04/27",
+        type: "incoming",
+        category: "Transfer",
+        note: "Refund",
+      },
+    ];
+    // Save the default transactions to localStorage
+    localStorage.setItem(
+      "chainWalletTransactions",
+      JSON.stringify(allTransactions)
+    );
+  }
 
   // Contact book storage
   let contacts = [
@@ -457,33 +539,33 @@ document.addEventListener("DOMContentLoaded", function () {
       const qrCode = document.createElement("div");
       qrCode.className = "p-4 bg-white rounded-lg shadow-lg";
       qrCode.innerHTML = `
-            <div class="text-center mb-2 text-gray-800 font-medium">Scan to Send ETH</div>
-            <div class="w-56 h-56 mx-auto bg-white p-2 rounded-lg border-2 border-primary flex items-center justify-center">
-              <div class="w-full h-full relative bg-white">
-                <!-- Simulated QR code pattern -->
-                <div class="absolute inset-0 grid grid-cols-10 grid-rows-10">
-                  ${Array(100)
-                    .fill()
-                    .map(
-                      () =>
-                        `<div class="border border-gray-200 ${
-                          Math.random() > 0.5 ? "bg-black" : "bg-white"
-                        }"></div>`
-                    )
-                    .join("")}
-                </div>
-                <!-- Center logo -->
-                <div class="absolute inset-0 flex items-center justify-center">
-                  <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center border-2 border-primary">
-                    <span class="text-primary text-lg font-bold">ETH</span>
+                <div class="text-center mb-2 text-gray-800 font-medium">Scan to Send ETH</div>
+                <div class="w-56 h-56 mx-auto bg-white p-2 rounded-lg border-2 border-primary flex items-center justify-center">
+                  <div class="w-full h-full relative bg-white">
+                    <!-- Simulated QR code pattern -->
+                    <div class="absolute inset-0 grid grid-cols-10 grid-rows-10">
+                      ${Array(100)
+                        .fill()
+                        .map(
+                          () =>
+                            `<div class="border border-gray-200 ${
+                              Math.random() > 0.5 ? "bg-black" : "bg-white"
+                            }"></div>`
+                        )
+                        .join("")}
+                    </div>
+                    <!-- Center logo -->
+                    <div class="absolute inset-0 flex items-center justify-center">
+                      <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center border-2 border-primary">
+                        <span class="text-primary text-lg font-bold">ETH</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </div>
-            <div class="mt-3 text-sm text-gray-800 break-all text-center p-2 bg-gray-100 rounded">
-              ${address}
-            </div>
-          `;
+                <div class="mt-3 text-sm text-gray-800 break-all text-center p-2 bg-gray-100 rounded">
+                  ${address}
+                </div>
+              `;
       qrCodeContainer.appendChild(qrCode);
     } else if (qrCodeContainer) {
       qrCodeContainer.classList.add("hidden");
@@ -614,8 +696,8 @@ document.addEventListener("DOMContentLoaded", function () {
       notificationIcon.className =
         "flex-shrink-0 h-12 w-12 rounded-full flex items-center justify-center bg-green-100 dark:bg-green-900/30 text-green-500 dark:text-green-300 mr-4";
       notificationIcon.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
-          </svg>`;
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+              </svg>`;
 
       if (notificationProgressBar)
         notificationProgressBar.className = "h-1 bg-green-500";
@@ -623,8 +705,8 @@ document.addEventListener("DOMContentLoaded", function () {
       notificationIcon.className =
         "flex-shrink-0 h-12 w-12 rounded-full flex items-center justify-center bg-blue-100 dark:bg-blue-900/30 text-blue-500 dark:text-blue-300 mr-4";
       notificationIcon.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-          </svg>`;
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+              </svg>`;
 
       if (notificationProgressBar)
         notificationProgressBar.className = "h-1 bg-blue-500";
@@ -665,20 +747,20 @@ document.addEventListener("DOMContentLoaded", function () {
       contactElement.className =
         "contact-item py-2 px-3 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 rounded";
       contactElement.innerHTML = `
-            <div class="flex justify-between items-center">
-              <div>
-                <div class="font-medium">${contact.name}</div>
-                <div class="text-xs text-gray-500 dark:text-gray-400">${shortenAddress(
-                  contact.address
-                )}</div>
-              </div>
-              <button class="edit-contact text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                </svg>
-              </button>
-            </div>
-          `;
+                <div class="flex justify-between items-center">
+                  <div>
+                    <div class="font-medium">${contact.name}</div>
+                    <div class="text-xs text-gray-500 dark:text-gray-400">${shortenAddress(
+                      contact.address
+                    )}</div>
+                  </div>
+                  <button class="edit-contact text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                    </svg>
+                  </button>
+                </div>
+              `;
 
       // Click to select contact
       contactElement.onclick = (e) => {
@@ -914,20 +996,20 @@ document.addEventListener("DOMContentLoaded", function () {
       accountBalance.classList.remove("balance-hidden");
       if (toggleBalanceVisibilityBtn) {
         toggleBalanceVisibilityBtn.innerHTML = `
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500 dark:text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-              </svg>
-            `;
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500 dark:text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                  </svg>
+                `;
       }
     } else {
       accountBalance.classList.add("balance-hidden");
       if (toggleBalanceVisibilityBtn) {
         toggleBalanceVisibilityBtn.innerHTML = `
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500 dark:text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
-              </svg>
-            `;
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500 dark:text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                  </svg>
+                `;
       }
     }
   }
@@ -1064,10 +1146,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
     if (!query) {
       targetContainer.innerHTML = `
-            <div class="text-center text-gray-500 dark:text-gray-400 py-4">
-              Type to search transactions, contacts, and settings
-            </div>
-          `;
+                <div class="text-center text-gray-500 dark:text-gray-400 py-4">
+                  Type to search transactions, contacts, and settings
+                </div>
+              `;
 
       if (isDesktop) {
         targetContainer.classList.remove("show");
@@ -1180,10 +1262,10 @@ document.addEventListener("DOMContentLoaded", function () {
     // Display results
     if (results.length === 0) {
       targetContainer.innerHTML = `
-            <div class="text-center text-gray-500 dark:text-gray-400 py-4">
-              No results found for "${query}"
-            </div>
-          `;
+                <div class="text-center text-gray-500 dark:text-gray-400 py-4">
+                  No results found for "${query}"
+                </div>
+              `;
       return;
     }
 
@@ -1209,9 +1291,9 @@ document.addEventListener("DOMContentLoaded", function () {
       groupEl.className = "mb-4";
 
       groupEl.innerHTML = `
-            <h3 class="text-sm font-medium mb-2 text-gray-500 dark:text-gray-400 px-3 pt-2">${group.title}</h3>
-            <div class="space-y-2"></div>
-          `;
+                <h3 class="text-sm font-medium mb-2 text-gray-500 dark:text-gray-400 px-3 pt-2">${group.title}</h3>
+                <div class="space-y-2"></div>
+              `;
 
       const itemsContainer = groupEl.querySelector(".space-y-2");
 
@@ -1242,65 +1324,65 @@ document.addEventListener("DOMContentLoaded", function () {
             }
 
             itemEl.innerHTML = `
-                  <div class="flex items-center">
-                    <div class="h-8 w-8 rounded-full flex items-center justify-center ${
-                      item.data.type === "incoming"
-                        ? "bg-green-100 text-green-500 dark:bg-green-900/30 dark:text-green-300"
-                        : item.data.type === "outgoing"
-                        ? "bg-red-100 text-red-500 dark:bg-red-900/30 dark:text-red-300"
-                        : "bg-blue-100 text-blue-500 dark:bg-blue-900/30 dark:text-blue-300"
-                    } mr-3">
-                      ${
-                        item.data.type === "incoming"
-                          ? "↓"
-                          : item.data.type === "outgoing"
-                          ? "↑"
-                          : "⚙️"
-                      }
-                    </div>
-                    <div class="flex-1">
-                      <div class="font-medium">${titleWithHighlight}</div>
-                      <div class="text-xs text-gray-500 dark:text-gray-400">${subtitleWithHighlight}</div>
-                      ${noteHighlight}
-                      <div class="flex mt-1">
-                        <span class="text-xs px-2 py-0.5 rounded-full ${
-                          item.data.category === "Transfer"
-                            ? "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
-                            : item.data.category === "Investment"
-                            ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
-                            : item.data.category === "NFT"
-                            ? "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200"
-                            : item.data.category === "DeFi"
-                            ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
-                            : "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200"
-                        }">${item.category}</span>
-                        <span class="text-xs text-gray-500 dark:text-gray-400 ml-2">${
-                          item.date
-                        }</span>
+                      <div class="flex items-center">
+                        <div class="h-8 w-8 rounded-full flex items-center justify-center ${
+                          item.data.type === "incoming"
+                            ? "bg-green-100 text-green-500 dark:bg-green-900/30 dark:text-green-300"
+                            : item.data.type === "outgoing"
+                            ? "bg-red-100 text-red-500 dark:bg-red-900/30 dark:text-red-300"
+                            : "bg-blue-100 text-blue-500 dark:bg-blue-900/30 dark:text-blue-300"
+                        } mr-3">
+                          ${
+                            item.data.type === "incoming"
+                              ? "↓"
+                              : item.data.type === "outgoing"
+                              ? "↑"
+                              : "⚙️"
+                          }
+                        </div>
+                        <div class="flex-1">
+                          <div class="font-medium">${titleWithHighlight}</div>
+                          <div class="text-xs text-gray-500 dark:text-gray-400">${subtitleWithHighlight}</div>
+                          ${noteHighlight}
+                          <div class="flex mt-1">
+                            <span class="text-xs px-2 py-0.5 rounded-full ${
+                              item.data.category === "Transfer"
+                                ? "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
+                                : item.data.category === "Investment"
+                                ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+                                : item.data.category === "NFT"
+                                ? "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200"
+                                : item.data.category === "DeFi"
+                                ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
+                                : "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200"
+                            }">${item.category}</span>
+                            <span class="text-xs text-gray-500 dark:text-gray-400 ml-2">${
+                              item.date
+                            }</span>
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  </div>
-                `;
+                    `;
             break;
           case "contact":
             itemEl.innerHTML = `
-                  <div class="flex items-center">
-                    <div class="h-8 w-8 rounded-full flex items-center justify-center bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 mr-3">
-                      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                      </svg>
-                    </div>
-                    <div class="flex-1">
-                      <div class="font-medium">${titleWithHighlight}</div>
-                      <div class="text-xs text-gray-500 dark:text-gray-400">${subtitleWithHighlight}</div>
-                    </div>
-                    <div class="text-primary">
-                      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
-                      </svg>
-                    </div>
-                  </div>
-                `;
+                      <div class="flex items-center">
+                        <div class="h-8 w-8 rounded-full flex items-center justify-center bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 mr-3">
+                          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                          </svg>
+                        </div>
+                        <div class="flex-1">
+                          <div class="font-medium">${titleWithHighlight}</div>
+                          <div class="text-xs text-gray-500 dark:text-gray-400">${subtitleWithHighlight}</div>
+                        </div>
+                        <div class="text-primary">
+                          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+                          </svg>
+                        </div>
+                      </div>
+                    `;
             break;
           case "setting":
             let iconPath;
@@ -1310,7 +1392,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 break;
               case "Preferences":
                 iconPath = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />`;
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />`;
                 break;
               case "Appearance":
                 iconPath = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />`;
@@ -1326,23 +1408,23 @@ document.addEventListener("DOMContentLoaded", function () {
             }
 
             itemEl.innerHTML = `
-                  <div class="flex items-center">
-                    <div class="h-8 w-8 rounded-full flex items-center justify-center bg-primary bg-opacity-10 text-primary mr-3">
-                      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        ${iconPath}
-                      </svg>
-                    </div>
-                    <div class="flex-1">
-                      <div class="font-medium">${titleWithHighlight}</div>
-                      <div class="text-xs text-gray-500 dark:text-gray-400">${subtitleWithHighlight}</div>
-                    </div>
-                    <div class="text-primary">
-                      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                      </svg>
-                    </div>
-                  </div>
-                `;
+                      <div class="flex items-center">
+                        <div class="h-8 w-8 rounded-full flex items-center justify-center bg-primary bg-opacity-10 text-primary mr-3">
+                          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            ${iconPath}
+                          </svg>
+                        </div>
+                        <div class="flex-1">
+                          <div class="font-medium">${titleWithHighlight}</div>
+                          <div class="text-xs text-gray-500 dark:text-gray-400">${subtitleWithHighlight}</div>
+                        </div>
+                        <div class="text-primary">
+                          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                          </svg>
+                        </div>
+                      </div>
+                    `;
             break;
         }
 
@@ -1598,15 +1680,22 @@ document.addEventListener("DOMContentLoaded", function () {
       // Wait for transaction
       await tx.wait();
 
-      // Add to transaction history with current local date (FIXED date issue here)
-      allTransactions.unshift({
+      // Add to transaction history with current local date
+      const newTransaction = {
         to: recipient,
         amount: amount,
         date: new Date().toLocaleDateString(),
         type: "outgoing",
         category: selectedCategory,
         note: note,
-      });
+      };
+
+      // Add to transactions array and save to localStorage
+      allTransactions.unshift(newTransaction);
+      localStorage.setItem(
+        "chainWalletTransactions",
+        JSON.stringify(allTransactions)
+      );
 
       // Add a notification
       addNotification(
@@ -1656,13 +1745,20 @@ document.addEventListener("DOMContentLoaded", function () {
       await tx.wait();
 
       // Add to transaction history with local date
-      allTransactions.unshift({
+      const newTransaction = {
         to: account,
         amount: "0.01",
         date: new Date().toLocaleDateString(),
         type: "contract",
         category: "Transfer",
-      });
+      };
+
+      // Add to transactions array and save to localStorage
+      allTransactions.unshift(newTransaction);
+      localStorage.setItem(
+        "chainWalletTransactions",
+        JSON.stringify(allTransactions)
+      );
 
       // Add a notification
       addNotification(
@@ -1720,13 +1816,20 @@ document.addEventListener("DOMContentLoaded", function () {
       await tx.wait();
 
       // Add to transaction history with local date
-      allTransactions.unshift({
+      const newTransaction = {
         to: recipient,
         amount: amount,
         date: new Date().toLocaleDateString(),
         type: "contract",
         category: "Contract",
-      });
+      };
+
+      // Add to transactions array and save to localStorage
+      allTransactions.unshift(newTransaction);
+      localStorage.setItem(
+        "chainWalletTransactions",
+        JSON.stringify(allTransactions)
+      );
 
       // Add a notification
       addNotification(
@@ -1820,29 +1923,31 @@ document.addEventListener("DOMContentLoaded", function () {
       }
 
       txElement.innerHTML = `
-            <div class="flex justify-between">
-              <div class="flex items-center">
-                <div class="flex items-center justify-center mr-3 ${colorClass} text-lg font-bold h-8 w-8 rounded-full bg-gray-100 dark:bg-gray-700">${icon}</div>
-                <div class="text-sm">
-                  <div class="font-medium">${displayName}</div>
-                  <div class="text-xs text-gray-500 dark:text-gray-400">${
-                    tx.date
-                  }</div>
-                </div>
-              </div>
-              <div class="text-right">
-                <div class="font-medium ${colorClass}">${tx.amount} ETH</div>
-                <span class="px-2 py-1 rounded-full text-xs ${categoryColor} inline-block mt-1">${
+                <div class="flex justify-between">
+                  <div class="flex items-center">
+                    <div class="flex items-center justify-center mr-3 ${colorClass} text-lg font-bold h-8 w-8 rounded-full bg-gray-100 dark:bg-gray-700">${icon}</div>
+                    <div class="text-sm">
+                      <div class="font-medium">${displayName}</div>
+                      <div class="text-xs text-gray-500 dark:text-gray-400">${
+                        tx.date
+                      }</div>
+                    </div>
+                  </div>
+                  <div class="text-right">
+                    <div class="font-medium ${colorClass}">${
+        tx.amount
+      } ETH</div>
+                    <span class="px-2 py-1 rounded-full text-xs ${categoryColor} inline-block mt-1">${
         tx.category || "Transfer"
       }</span>
-              </div>
-            </div>
-            ${
-              tx.note
-                ? `<div class="mt-2 text-xs text-gray-500 dark:text-gray-400 border-t border-gray-100 dark:border-gray-700 pt-2">${tx.note}</div>`
-                : ""
-            }
-          `;
+                  </div>
+                </div>
+                ${
+                  tx.note
+                    ? `<div class="mt-2 text-xs text-gray-500 dark:text-gray-400 border-t border-gray-100 dark:border-gray-700 pt-2">${tx.note}</div>`
+                    : ""
+                }
+              `;
 
       transactionsContainer.appendChild(txElement);
     });
@@ -2006,10 +2111,10 @@ document.addEventListener("DOMContentLoaded", function () {
       } else {
         profileBtn.style.backgroundImage = "";
         profileBtn.innerHTML = `
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-full w-full text-gray-600 dark:text-gray-300 p-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-              </svg>
-            `;
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-full w-full text-gray-600 dark:text-gray-300 p-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                `;
       }
     }
 
@@ -2021,10 +2126,10 @@ document.addEventListener("DOMContentLoaded", function () {
       } else {
         profileImageContainer.style.backgroundImage = "";
         profileImageContainer.innerHTML = `
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-gray-500 dark:text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-              </svg>
-            `;
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-gray-500 dark:text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                `;
       }
     }
 
@@ -2091,12 +2196,12 @@ document.addEventListener("DOMContentLoaded", function () {
       const notificationEl = document.createElement("div");
       notificationEl.className = `${bgClass} p-3 rounded-lg mb-2`;
       notificationEl.innerHTML = `
-            <div class="flex justify-between items-start">
-              <div class="font-medium text-sm">${title}</div>
-              <div class="text-xs text-gray-500 dark:text-gray-400">${timeAgo}</div>
-            </div>
-            <p class="text-xs mt-1">${message}</p>
-          `;
+                <div class="flex justify-between items-start">
+                  <div class="font-medium text-sm">${title}</div>
+                  <div class="text-xs text-gray-500 dark:text-gray-400">${timeAgo}</div>
+                </div>
+                <p class="text-xs mt-1">${message}</p>
+              `;
 
       // Add to the beginning of the list
       notificationsList.insertBefore(
@@ -2547,39 +2652,6 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     });
   });
-
-  // Receive ETH simulation (to demonstrate notifications)
-  setTimeout(() => {
-    // Simulate receiving ETH after 10 seconds for demonstration
-    if (userProfile.connected) {
-      // Add to transaction history with local date
-      allTransactions.unshift({
-        to: userProfile.address || "0x52676f0b841d7b40740ced9a218de532da9ba640",
-        amount: "0.05",
-        date: new Date().toLocaleDateString(),
-        type: "incoming",
-        category: "Transfer",
-        note: "Payment received",
-      });
-
-      // Add a notification
-      addNotification(
-        "Transaction Received",
-        "You've received 0.05 ETH from John Doe",
-        "green"
-      );
-
-      // Show transaction notification
-      showTransactionNotification(
-        "Transaction Received",
-        "You've received 0.05 ETH from John Doe",
-        "received"
-      );
-
-      // Update balance if connected
-      if (connected) updateBalance();
-    }
-  }, 10000);
 
   // Initialize app
   console.log("Initializing app...");
